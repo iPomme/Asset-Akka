@@ -4,18 +4,27 @@ using UnityEngine;
 using Akka.Actor;
 using Akka.Configuration;
 using Akka.Event;
+using System;
+using Jorand.AkkaUnity;
+using System.Threading;
 
-public class PingPong : MonoBehaviour
+public class PingPong : MonoBehaviourActor
 {
-    private readonly ActorSystem _system = ActorSystem.Create("PingPong");
-
-
-    // Use this for initialization
     void Start()
     {
-        var ponger = _system.ActorOf(PingPongActor.Props("ping", "pong"), "ponger");
-        var pinger = _system.ActorOf(PingPongActor.Props("pong", "ping"), "pinger");
+        // Initialize the Actor
+        base.Start(this.name);
+        UnityEngine.Debug.Log("PingPong Starting ....");
 
+        // Create the ping and the pong actor
+        var ponger = system.ActorOf(PingPongActor.Props("ping", "pong"), "ponger");
+        var pinger = system.ActorOf(PingPongActor.Props("pong", "ping"), "pinger");
+
+        // Create a scheduler to make sure we can send messages to this MonoBehavior
+        system.Scheduler.ScheduleTellRepeatedly(TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(2), internalActor,
+            "hello", internalActor);
+
+        // Start the game ....
         pinger.Tell("pong", ponger);
     }
 
@@ -24,9 +33,9 @@ public class PingPong : MonoBehaviour
     {
     }
 
-    private void OnDisable()
+    public override void OnReceive(object message, IActorRef sender)
     {
-        _system.Terminate();
+        UnityEngine.Debug.Log(Thread.CurrentThread.ManagedThreadId + ": received from '"+ sender.ToString()+ "' the message: " + message.ToString());
     }
 }
 
@@ -52,7 +61,9 @@ public class PingPongActor : UntypedActor
             Sender.Tell(_answer);
             count += 1;
             if (count % 100000 == 0)
-                UnityEngine.Debug.Log(count.ToString("N0") + ": received " + message.ToString() + " answering " + _answer);
+                UnityEngine.Debug.Log(Thread.CurrentThread.ManagedThreadId + ": " + count.ToString("N0") +
+                                      ": received " + message.ToString() + " answering " +
+                                      _answer);
         }
     }
 
