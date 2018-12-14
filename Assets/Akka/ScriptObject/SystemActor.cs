@@ -32,4 +32,10 @@ public class SystemActor : ScriptableObject {
 		return _system;
 	}
 	
+	public void OnDestroy()
+	{
+		Debug.Log("Destrowing the system Actor ....");
+		_system.Terminate();
+	}
+	
 }
