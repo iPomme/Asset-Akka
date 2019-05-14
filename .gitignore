@@ -5,6 +5,9 @@
 [Bb]uilds/
 Assets/AssetStoreTools*
 
+# Intellij
+JetBrains/
+
 # Visual Studio cache directory
 .vs/
 

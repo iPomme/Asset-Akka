@@ -1,8 +1,8 @@
-using System.Runtime.InteropServices;
-using System.Runtime.Remoting.Contexts;
 using UnityEngine;
 using Akka.Actor;
 using Akka;
+using UnityEngine.SceneManagement;
+
 
 namespace Jorand.AkkaUnity
 {
@@ -22,16 +22,23 @@ namespace Jorand.AkkaUnity
 
         protected void Start(string name)
         {
-            string nameCleaned = name.Replace(" ", "").Replace("(","_").Replace(")","_"); // TODO: improve the cleanup
-            Debug.Log(nameCleaned +" Starting ....");
+            string nameWithScene = SceneManager.GetActiveScene().name + "-" + name;
+            string nameCleaned =
+                nameWithScene.Replace(" ", "").Replace("(", "_").Replace(")", "_"); // TODO: improve the cleanup
+            Debug.Log(nameCleaned + " Starting ....");
             system = SystemActor.Instance.GetActorSystem();
             internalActor = system.ActorOf(InternalActor.Props(this.GetType().Name, this), nameCleaned);
         }
 
         protected void OnDisable()
         {
-            Debug.Log(this.name +" OnDisable ....");
+            Debug.Log(this.name + " OnDisable ....");
 //            system.Terminate();
+        }
+
+        private void OnDestroy()
+        {
+            internalActor.Tell(PoisonPill.Instance);
         }
     }
 
@@ -56,5 +63,8 @@ namespace Jorand.AkkaUnity
         {
             return Akka.Actor.Props.Create(() => new InternalActor(name, unity));
         }
+        
+       
     }
+
 }
