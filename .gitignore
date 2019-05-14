@@ -6,7 +6,7 @@
 Assets/AssetStoreTools*
 
 # Intellij
-JetBrains/
+Assets/Plugins/Editor/JetBrains/
 
 # Visual Studio cache directory
 .vs/
