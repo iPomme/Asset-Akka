@@ -1,7 +1,12 @@
+using System;
 using UnityEngine;
 using Akka.Actor;
+using Akka.Util.Internal;
 using Akka;
 using UnityEngine.SceneManagement;
+using LaYumba.Functional;
+using LaYumba.Functional.Option;
+using static LaYumba.Functional.F;
 
 
 namespace Jorand.AkkaUnity
@@ -28,6 +33,7 @@ namespace Jorand.AkkaUnity
             Debug.Log(nameCleaned + " Starting ....");
             system = SystemActor.Instance.GetActorSystem();
             internalActor = system.ActorOf(InternalActor.Props(this.GetType().Name, this), nameCleaned);
+            UnityThread.initUnityThread();
         }
 
         protected void OnDisable()
@@ -39,6 +45,20 @@ namespace Jorand.AkkaUnity
         private void OnDestroy()
         {
             internalActor.Tell(PoisonPill.Instance);
+        }
+        
+        
+        public static Option<IActorRef> getActorRef(string path, ActorSystem system)
+        {
+            try
+            {
+                return Some(system.ActorSelection(path).ResolveOne(TimeSpan.FromSeconds(2)).Result);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e.ToString() + ": Cannot ge the reference to the actor with path: ");
+                return new None();
+            }
         }
     }
 
