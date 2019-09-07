@@ -42,3 +42,26 @@ So when you want to send a message to the actor use the following:
  uiManager = uiManager.OrElse(getActorRef(UIManagerPath, system));
  uiManager.ForEach(actor => actor.Tell(new UIMessages.ButtonClicked(this.name), internalActor));
 ```
+
+## Update the UI on Message received
+
+When a message is received by an actor, the thread would not be the Main thread so Unity will complain if you are trying to update the UI.
+There is a facility class named `UnityThread` taken from [StackOverFlow](https://stackoverflow.com/questions/41330771/use-unity-api-from-another-thread-or-call-a-function-in-the-main-thread).
+Use the `UnityThread.executeInUpdate()` method to call your function on the next update().
+
+Here is an example:
+```c#
+public override void OnReceive(object message, IActorRef sender)
+    {
+        switch (message)
+        {
+            case UIMessages.ButtonClicked button:
+                Debug.LogFormat("button '{0}' clicked", button.name);
+                UnityThread.executeInUpdate(() => disableButton(button.name));
+                break;
+            default:
+                Debug.LogErrorFormat("Unknown message {0}", message);
+                break;
+        }
+    }
+```
