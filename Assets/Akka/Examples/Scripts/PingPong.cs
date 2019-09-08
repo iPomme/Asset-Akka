@@ -111,7 +111,7 @@ public class PingPongActor : UntypedActor
                                       ": received " + message.ToString() + " answering " +
                                       _answer);
 
-                uiManager = uiManager.OrElse(MonoBehaviourActor.getActorRef(_uiManagerPath, SystemActor.Instance.GetActorSystem()));
+                uiManager = uiManager.OrElse(MonoBehaviourActor.getActorRef(_uiManagerPath, AkkaSystem.Instance.GetActorSystem()));
                 int time = timeMessages.Elapsed.Milliseconds;
                 timeMessages = Stopwatch.StartNew();
                 UIMessages.SpeedInfo msg = new UIMessages.SpeedInfo(100000 / time * 1000);

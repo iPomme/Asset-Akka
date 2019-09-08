@@ -31,7 +31,7 @@ namespace Jorand.AkkaUnity
             string nameCleaned =
                 nameWithScene.Replace(" ", "").Replace("(", "_").Replace(")", "_"); // TODO: improve the cleanup
             Debug.Log(nameCleaned + " Starting ....");
-            system = SystemActor.Instance.GetActorSystem();
+            system = AkkaSystem.Instance.GetActorSystem();
             internalActor = system.ActorOf(InternalActor.Props(this.GetType().Name, this), nameCleaned);
             UnityThread.initUnityThread();
         }
@@ -76,15 +76,61 @@ namespace Jorand.AkkaUnity
 
         protected override void OnReceive(object message)
         {
-            _unity.OnReceive(message, Sender);
+            switch (message)
+            {
+                case CreateChildActor createRequest:
+                    Debug.LogFormat("{0} creating child actor: {1}", Self.Path, createRequest.ChildName);
+                    var child = Context.ActorOf(createRequest.ChildProps, createRequest.ChildName);
+                    createRequest.ActorToNotify.ForEach(a => a.Tell(new ReadyForWork(child, createRequest.ChildName)));
+                    break;
+                default:
+                    _unity.OnReceive(message, Sender);
+                    break;
+            }
+            
         }
 
         public static Props Props(string name, MonoBehaviourActor unity)
         {
             return Akka.Actor.Props.Create(() => new InternalActor(name, unity));
         }
-        
-       
     }
+    
+    #region Messages
+    /// <summary>
+    /// Command to create ChildProps actor and notify another actor about it.
+    /// </summary>
+    public class CreateChildActor
+    {
+        public CreateChildActor(string childName, Props childProps, Option<IActorRef> actorToNotify)
+        {
+            ChildName = childName;
+            ActorToNotify = actorToNotify;
+            ChildProps = childProps;
+        }
 
+        public CreateChildActor(string childName, Props childProps)
+            : this(childName, childProps, new None())
+        {
+        }
+
+        public Props ChildProps { get; private set; }
+        public string ChildName { get; private set; }
+        public Option<IActorRef> ActorToNotify { get; private set; }
+    }
+    /// <summary>
+    /// Report to another actor when ready.
+    /// </summary>
+    public class ReadyForWork
+    {
+        public ReadyForWork(IActorRef worker, string name)
+        {
+            Worker = worker;
+            Name = name;
+        }
+
+        public IActorRef Worker { get; private set; }
+        public string Name { get; private set; }
+    }
+    #endregion
 }
