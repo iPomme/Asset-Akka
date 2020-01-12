@@ -10,6 +10,7 @@ using Jorand.AkkaUnity;
 using System.Threading;
 using Assets.Scripts;
 using LaYumba.Functional;
+using Unity.Profiling;
 using static LaYumba.Functional.F;
 using Debug = Akka.Event.Debug;
 
@@ -82,6 +83,8 @@ public class PingPong : MonoBehaviourActor
 
 public class PingPongActor : UntypedActor
 {
+    static ProfilerMarker s_PreparePerfMarker = new ProfilerMarker("AKKAUnity.OnReceive");
+    
     private readonly PingPong.Messages.IPingPong _matcher;
     private readonly PingPong.Messages.IPingPong _answer;
     private readonly string _uiManagerPath;
@@ -101,6 +104,8 @@ public class PingPongActor : UntypedActor
 
     protected override void OnReceive(object message)
     {
+        s_PreparePerfMarker.Begin();
+        
         if (message.GetType() == _matcher.GetType())
         {
             Sender.Tell(_answer);
@@ -119,6 +124,8 @@ public class PingPongActor : UntypedActor
                 uiManager.ForEach(a => a.Tell(msg, Self));
             }
         }
+        
+        s_PreparePerfMarker.End();
     }
 
     public static Props Props(PingPong.Messages.IPingPong matcher, PingPong.Messages.IPingPong answer, string uiManagerPath)
