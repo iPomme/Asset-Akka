@@ -737,7 +737,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a6bb18f2117c4d39b4dfdcd6a2261641, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speedInfo: {fileID: 0}
 --- !u!4 &958849498
 Transform:
   m_ObjectHideFlags: 0
@@ -830,7 +829,7 @@ GameObject:
   - component: {fileID: 2032928131}
   - component: {fileID: 2032928130}
   m_Layer: 5
-  m_Name: Text
+  m_Name: TextBtn
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

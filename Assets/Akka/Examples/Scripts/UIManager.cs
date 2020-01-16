@@ -10,7 +10,13 @@ namespace Assets.Scripts
 {
     public class UIManager : MonoBehaviour
     {
-        public Text speedInfo;
+        public static Text speedInfo;
+
+        private void Start()
+        {
+            UnityThread.initUnityThread();
+            speedInfo = GameObject.Find("Text").GetComponent<Text>();
+        }
 
         private void changeLabelButton(string name)
         {
@@ -35,10 +41,10 @@ namespace Assets.Scripts
                     break;
                 case UIMessages.SpeedInfo speed:
                     UnityEngine.Debug.LogFormat("speedInfo received with '{0}' as value", speed.speed);
-//                    UnityThread.executeInUpdate(() => speedInfo.text = $"{speed.speed:n0} Msg/sec");
+                    UnityThread.executeInUpdate(() => UIManager.speedInfo.text = $"{speed.speed:n0} Msg/sec");
                     break;
                 default:
-//                    UnityEngine.Debug.LogErrorFormat("Unknown message {0}", message);
+                    UnityEngine.Debug.LogErrorFormat("Unknown message {0}", message);
                     break;
             }
             return Actor.Done;

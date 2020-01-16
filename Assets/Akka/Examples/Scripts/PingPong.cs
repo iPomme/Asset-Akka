@@ -1,10 +1,13 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Assets.Scripts;
 using LanguageExt;
 using Proto;
 using Unity.Profiling;
+using Debug = UnityEngine.Debug;
+using static  LanguageExt.Prelude;
 
 
 public class Messages
@@ -44,7 +47,7 @@ public class PingPongActor : IActor
 
 
     private int count = 0;
-    private Option<PID> uiManager;
+    private Option<PID> uiManager = None;
 
     private Stopwatch timeMessages = Stopwatch.StartNew();
 
@@ -72,11 +75,18 @@ public class PingPongActor : IActor
                                       ": received " + context.Message?.ToString() + " answering " +
                                       _answer);
 
-                int time = timeMessages.Elapsed.Milliseconds;
-                timeMessages = Stopwatch.StartNew();
-                UIMessages.SpeedInfo msg = new UIMessages.SpeedInfo(100000 / time * 1000);
-                UnityEngine.Debug.LogFormat("about to send {0} to the UIManager {1}", msg, uiManager);
-                uiManager.IfSome(a => a.Tell(msg));
+                try
+                {
+                    int time = timeMessages.Elapsed.Milliseconds;
+                    timeMessages = Stopwatch.StartNew();
+                    UIMessages.SpeedInfo msg = new UIMessages.SpeedInfo(100000 / time * 1000);
+                    Debug.LogFormat("about to send {0} to the UIManager {1}", msg, uiManager.Map(x => x.Id));
+                    uiManager.IfSome(a => a.Tell(msg));
+                }
+                catch (Exception e)
+                {
+                    Debug.LogErrorFormat($"message '{0}', stacktrace: \n '{1}'",e.Message, e.StackTrace);
+                }
             }
         }
 
